@@ -6,7 +6,7 @@ import { filterDoctors } from './services/doctorServices.js';//call the same fun
 import { patientSignup, patientLogin } from './services/patientServices.js';
 
 
-
+// Use DOMContentLoaded or window.onload to trigger loadDoctorCards() on page load.
 document.addEventListener("DOMContentLoaded", () => {
   loadDoctorCards();
 });
@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 })
 
+
 function loadDoctorCards() {
   getDoctors()
     .then(doctors => {
@@ -42,13 +43,23 @@ function loadDoctorCards() {
       console.error("Failed to load doctors:", error);
     });
 }
+
+// set up event listeners on:
+// #searchBar
+// Filter dropdowns
 // Filter Input
 document.getElementById("searchBar").addEventListener("input", filterDoctorsOnChange);
 document.getElementById("filterTime").addEventListener("change", filterDoctorsOnChange);
 document.getElementById("filterSpecialty").addEventListener("change", filterDoctorsOnChange);
 
 
-
+/*
+Gathers values from all three filter/search inputs.
+Uses filterDoctors(name, time, specialty) to fetch filtered results.
+Clears the existing content.
+If doctors are found, renders them using createDoctorCard().
+If not, displays a fallback message.
+ */
 function filterDoctorsOnChange() {
   const searchBar = document.getElementById("searchBar").value.trim();
   const filterTime = document.getElementById("filterTime").value;
