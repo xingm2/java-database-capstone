@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController // 1. Mark as REST controller
+@RestController // 1. Mark as REST controller: JSON
 @RequestMapping("/patient") // Group all patient operations under /patient
 public class PatientController {
     private final PatientService patientService;
@@ -28,8 +28,8 @@ public class PatientController {
     // 2. Constructor-based injection
     //@Autowired
     public PatientController(PatientService patientService, Service service) {
-        this.patientService = patientService;
-        this.service = service;
+        this.patientService = patientService; // Patient-specific service for handling patient logic
+        this.service = service; // Shared service for token validation and login authentication
     }
 
 // 3. Define the `getPatient` Method:
@@ -39,16 +39,16 @@ public class PatientController {
     // 3. Get patient details using token
     @GetMapping("/me/{token}")
     public ResponseEntity<?> getPatient(@PathVariable String token) {
-        if (!service.validateToken(token, "patient")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token.");
+        if (!service.validateToken(token, "patient")) { // Validate token for "patient" role
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token."); // Return 401 if token is invalid
         }
 
-        Patient patient = patientService.getPatientDetails(token);
+        Patient patient = patientService.getPatientDetails(token); // Retrieve patient details using the token
         if (patient == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Patient not found.");
         }
 
-        return ResponseEntity.ok(patient);
+        return ResponseEntity.ok(patient); // Return patient details with 200 OK status
     }
 
 // 4. Define the `createPatient` Method:
@@ -59,13 +59,13 @@ public class PatientController {
     // 4. Register a new patient
     @PostMapping("/register")
     public ResponseEntity<?> createPatient(@RequestBody Patient patient) {
-        if (!service.validatePatient(patient)) {
+        if (!service.validatePatient(patient)) { // Validate patient data (e.g., check for existing email/phone)
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Patient already exists with given email or phone.");
         }
 
         int result = patientService.createPatient(patient);
         return switch (result) {
-            case 1 -> ResponseEntity.status(HttpStatus.CREATED).body("Patient registered successfully.");
+            case 1 -> ResponseEntity.status(HttpStatus.CREATED).body("Patient registered successfully."); // Return 201 Created on success
             case 0 -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving patient.");
             default -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Unexpected error.");
         };
@@ -79,7 +79,7 @@ public class PatientController {
     // 5. Login patient
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Login login) {
-        return service.validatePatientLogin(login.getEmail(), login.getPassword());
+        return service.validatePatientLogin(login.getEmail(), login.getPassword()); // Validate login credentials and return token or error message
     }
 
 // 6. Define the `getPatientAppointment` Method:
@@ -92,12 +92,12 @@ public class PatientController {
     public ResponseEntity<?> getPatientAppointments(@PathVariable Long patientId,
                                                     @PathVariable String user,
                                                     @PathVariable String token) {
-        if (!service.validateToken(token, user)) {
+        if (!service.validateToken(token, user)) { // Validate token for the specified user role
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token.");
         }
 
-        List<AppointmentDTO> appointments = patientService.getPatientAppointment(patientId);
-        return ResponseEntity.ok(appointments);
+        List<AppointmentDTO> appointments = patientService.getPatientAppointment(patientId); // Retrieve appointments for the patient
+        return ResponseEntity.ok(appointments); // Return appointment details with 200 OK status
     }
 
 // 7. Define the `filterPatientAppointment` Method:
